@@ -9,6 +9,27 @@ func color(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, _ alpha: CGFloat =
     NSColor(calibratedRed: red, green: green, blue: blue, alpha: alpha)
 }
 
+func applyCrimsonPalette(_ bitmap: NSBitmapImageRep) {
+    for y in 0..<bitmap.pixelsHigh {
+        for x in 0..<bitmap.pixelsWide {
+            guard let source = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else {
+                fatalError("Could not read artwork pixel at \(x), \(y).")
+            }
+            let luminance = 0.2126 * source.redComponent
+                + 0.7152 * source.greenComponent
+                + 0.0722 * source.blueComponent
+            let red = min(1, 0.025 + luminance * 1.08)
+            let green = luminance > 0.72 ? 0.42 + (luminance - 0.72) * 0.8 : luminance * 0.075
+            let blue = luminance > 0.72 ? 0.12 : luminance * 0.09
+            bitmap.setColor(
+                color(red, green, blue, source.alphaComponent),
+                atX: x,
+                y: y
+            )
+        }
+    }
+}
+
 func line(_ from: NSPoint, _ to: NSPoint, color: NSColor, width: CGFloat = 1) -> NSBezierPath {
     let path = NSBezierPath()
     path.move(to: from)
@@ -241,6 +262,11 @@ let sigil = drawCanvas("03 / SIGNAL NOISE", "FIND THE PATTERN. BECOME THE PATTER
     drawText("GLITCH IS A FEATURE", x: 370, y: 49, size: 13, color: color(0.46, 0.9, 0.55), weight: .bold)
 }
 
-save(network, name: "network-map.png")
-save(terminal, name: "after-hours-terminal.png")
-save(sigil, name: "signal-noise.png")
+for (bitmap, name) in [
+    (network, "network-map.png"),
+    (terminal, "after-hours-terminal.png"),
+    (sigil, "signal-noise.png")
+] {
+    applyCrimsonPalette(bitmap)
+    save(bitmap, name: name)
+}

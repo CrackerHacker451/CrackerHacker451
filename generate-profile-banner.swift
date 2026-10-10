@@ -39,6 +39,73 @@ func glow(_ path: NSBezierPath, _ color: NSColor, _ width: CGFloat) {
     stroke(path, color, width)
 }
 
+func applyCrimsonPalette(_ bitmap: NSBitmapImageRep) {
+    for y in 0..<bitmap.pixelsHigh {
+        for x in 0..<bitmap.pixelsWide {
+            guard let source = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else {
+                fatalError("Could not read artwork pixel at \(x), \(y).")
+            }
+            let luminance = 0.2126 * source.redComponent
+                + 0.7152 * source.greenComponent
+                + 0.0722 * source.blueComponent
+            let red = min(1, 0.025 + luminance * 1.08)
+            let green = luminance > 0.72 ? 0.42 + (luminance - 0.72) * 0.8 : luminance * 0.075
+            let blue = luminance > 0.72 ? 0.12 : luminance * 0.09
+            bitmap.setColor(
+                color(red, green, blue, source.alphaComponent),
+                atX: x,
+                y: y
+            )
+        }
+    }
+}
+
+func drawCrown(centerX: CGFloat, baseY: CGFloat, width: CGFloat, height: CGFloat) {
+    let gold = color(1, 0.69, 0.22)
+    let ruby = color(0.72, 0.025, 0.08)
+    let crown = polygon([
+        NSPoint(x: centerX - width / 2, y: baseY),
+        NSPoint(x: centerX - width / 2, y: baseY + height * 0.3),
+        NSPoint(x: centerX - width * 0.29, y: baseY + height * 0.17),
+        NSPoint(x: centerX - width * 0.15, y: baseY + height * 0.88),
+        NSPoint(x: centerX, y: baseY + height * 0.43),
+        NSPoint(x: centerX + width * 0.15, y: baseY + height * 0.88),
+        NSPoint(x: centerX + width * 0.29, y: baseY + height * 0.17),
+        NSPoint(x: centerX + width / 2, y: baseY + height * 0.3),
+        NSPoint(x: centerX + width / 2, y: baseY)
+    ])
+    fill(crown, gold)
+
+    let inset = polygon([
+        NSPoint(x: centerX - width * 0.34, y: baseY + height * 0.09),
+        NSPoint(x: centerX - width * 0.29, y: baseY + height * 0.22),
+        NSPoint(x: centerX - width * 0.17, y: baseY + height * 0.19),
+        NSPoint(x: centerX, y: baseY + height * 0.48),
+        NSPoint(x: centerX + width * 0.17, y: baseY + height * 0.19),
+        NSPoint(x: centerX + width * 0.29, y: baseY + height * 0.22),
+        NSPoint(x: centerX + width * 0.34, y: baseY + height * 0.09)
+    ])
+    fill(inset, ruby)
+    stroke(crown, color(1, 0.86, 0.5), max(1, width * 0.012))
+
+    let jewel = NSBezierPath(ovalIn: NSRect(
+        x: centerX - width * 0.055,
+        y: baseY + height * 0.2,
+        width: width * 0.11,
+        height: width * 0.11
+    ))
+    fill(jewel, color(1, 0.22, 0.16))
+    for x in [centerX - width * 0.29, centerX, centerX + width * 0.29] {
+        let point = NSBezierPath(ovalIn: NSRect(
+            x: x - width * 0.025,
+            y: baseY + height * 0.77,
+            width: width * 0.05,
+            height: width * 0.05
+        ))
+        fill(point, color(1, 0.94, 0.7))
+    }
+}
+
 func drawText(_ text: String, x: CGFloat, y: CGFloat, size: CGFloat, weight: NSFont.Weight, foreground: NSColor, mono: Bool = false) {
     let font = mono
         ? NSFont.monospacedSystemFont(ofSize: size, weight: weight)
@@ -268,10 +335,12 @@ func drawAvatar() -> NSBitmapImageRep {
         fill(NSBezierPath(rect: NSRect(x: x + 9, y: y - 6, width: w * 0.54, height: 2)), color(1, 1, 1, 0.7))
     }
 
+    drawCrown(centerX: 256, baseY: 414, width: 190, height: 82)
+
     let sigil = NSBezierPath(roundedRect: NSRect(x: 189, y: 50, width: 134, height: 34), xRadius: 6, yRadius: 6)
     fill(sigil, color(0.006, 0.015, 0.025))
-    glow(sigil, acid, 1)
-    drawText("LC // 451", x: 202, y: 60, size: 15, weight: .bold, foreground: color(0.86, 1, 0.45), mono: true)
+    glow(sigil, color(1, 0.69, 0.22), 1)
+    drawText("LC // 451", x: 202, y: 60, size: 15, weight: .bold, foreground: color(1, 0.82, 0.48), mono: true)
 
     NSGraphicsContext.restoreGraphicsState()
     return bitmap
@@ -377,6 +446,9 @@ func drawBanner() -> NSBitmapImageRep {
         fill(node, color(0.74, 1, 0.13))
     }
 
+    drawCrown(centerX: 1244, baseY: 366, width: 96, height: 54)
+    drawText("SOVEREIGN NODE", x: 1159, y: 350, size: 11, weight: .semibold, foreground: color(1, 0.79, 0.42), mono: true)
+
     NSGraphicsContext.restoreGraphicsState()
     return bitmap
 }
@@ -392,5 +464,10 @@ func writePNG(_ bitmap: NSBitmapImageRep, to path: String) {
     }
 }
 
-writePNG(drawAvatar(), to: avatarPath)
-writePNG(drawBanner(), to: bannerPath)
+let avatar = drawAvatar()
+applyCrimsonPalette(avatar)
+writePNG(avatar, to: avatarPath)
+
+let banner = drawBanner()
+applyCrimsonPalette(banner)
+writePNG(banner, to: bannerPath)

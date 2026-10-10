@@ -1,30 +1,29 @@
 <p align="center">
-  <img src="profile-banner.png" alt="Cyberpunk profile banner for Laltesh Chaudhary, GitHub @Crackerhacker451" width="100%">
+  <img src="profile-banner.png" alt="Crimson and gold royal cyber-security banner for Laltesh Chaudhary, GitHub @Crackerhacker451" width="100%">
 </p>
 
-# Hi, I'm Laltesh Chaudhary
+# LALTESH CHAUDHARY
 
-Welcome to my GitHub profile!
+### Code · Security · Systems
 
-Find me on GitHub: [@Crackerhacker451](https://github.com/Crackerhacker451)
+I build, explore, and keep learning—one project at a time.
 
-This is where I share my projects and experiments. Feel free to explore my repositories.
+**GitHub:** [@Crackerhacker451](https://github.com/Crackerhacker451)
 
-## Signal Archive
+## The Redline Archive
 
-Three original visuals from my neon terminal universe:
+Original crimson-and-gold cyber artwork:
 
 <p align="center">
-  <img src="network-map.png" alt="Neon network topology map" width="49%">
-  <img src="after-hours-terminal.png" alt="After-hours hacker terminal interface" width="49%">
+  <img src="network-map.png" alt="Crimson network topology map" width="49%">
+  <img src="after-hours-terminal.png" alt="Crimson after-hours terminal interface" width="49%">
 </p>
 <p align="center">
-  <img src="signal-noise.png" alt="Glitch signal-noise sigil" width="80%">
+  <img src="signal-noise.png" alt="Crimson and gold signal-noise sigil" width="80%">
 </p>
 
 ```text
-root@crackerhacker451:~$ whoami
-Laltesh Chaudhary
-root@crackerhacker451:~$ ls interests/
-code/  security/  systems/
+CRACKERHACKER451 :: ROOT CONSOLE
+FOCUS  ->  CODE / SECURITY / SYSTEMS
+MODE   ->  BUILD / LEARN / REPEAT
 ```
