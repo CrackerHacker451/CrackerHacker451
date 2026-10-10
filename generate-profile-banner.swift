@@ -33,6 +33,12 @@ func fill(_ path: NSBezierPath, color: NSColor) {
     path.fill()
 }
 
+func neonStroke(_ path: NSBezierPath, color: NSColor, width: CGFloat) {
+    stroke(path, color: color.withAlphaComponent(0.12), width: width * 4)
+    stroke(path, color: color.withAlphaComponent(0.24), width: width * 2)
+    stroke(path, color: color, width: width)
+}
+
 func drawAvatar() -> NSBitmapImageRep {
     let size = 512
     guard let bitmap = NSBitmapImageRep(
@@ -53,155 +59,183 @@ func drawAvatar() -> NSBitmapImageRep {
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = context
     let canvas = NSRect(x: 0, y: 0, width: size, height: size)
-    NSGradient(colors: [color(0.008, 0.025, 0.018), color(0.012, 0.055, 0.03), color(0.005, 0.012, 0.02)])!
-        .draw(in: canvas, angle: 35)
+    NSGradient(colors: [color(0.014, 0.01, 0.035), color(0.025, 0.012, 0.04), color(0.004, 0.025, 0.018)])!
+        .draw(in: canvas, angle: 32)
 
-    let green = color(0.18, 1, 0.38)
-    let dimGreen = color(0.12, 0.62, 0.27, 0.7)
+    let green = color(0.25, 1, 0.42)
+    let acid = color(0.73, 1, 0.15)
+    let red = color(1, 0.12, 0.27)
+
     let grid = NSBezierPath()
     grid.lineWidth = 1
-    for x in stride(from: 24, through: size, by: 32) {
+    for x in stride(from: 0, through: size, by: 32) {
         grid.move(to: NSPoint(x: x, y: 0))
         grid.line(to: NSPoint(x: x, y: size))
     }
-    for y in stride(from: 24, through: size, by: 32) {
+    for y in stride(from: 0, through: size, by: 32) {
         grid.move(to: NSPoint(x: 0, y: y))
         grid.line(to: NSPoint(x: size, y: y))
     }
-    stroke(grid, color: color(0.1, 0.65, 0.25, 0.12), width: 1)
+    stroke(grid, color: color(0.16, 0.72, 0.29, 0.1), width: 1)
 
-    let terminal = NSBezierPath(roundedRect: NSRect(x: 27, y: 30, width: 458, height: 452), xRadius: 18, yRadius: 18)
-    fill(terminal, color: color(0.005, 0.018, 0.014, 0.94))
-    stroke(terminal, color: color(0.15, 0.92, 0.34, 0.75), width: 2)
-    let titleBar = NSBezierPath(roundedRect: NSRect(x: 28, y: 442, width: 456, height: 39), xRadius: 17, yRadius: 17)
-    fill(titleBar, color: color(0.035, 0.12, 0.07))
-    let divider = NSBezierPath()
-    divider.move(to: NSPoint(x: 29, y: 440))
-    divider.line(to: NSPoint(x: 483, y: 440))
-    stroke(divider, color: color(0.15, 0.82, 0.3, 0.56), width: 1)
-
-    for (index, dotColor) in [color(1, 0.28, 0.25), color(1, 0.76, 0.2), green].enumerated() {
-        let dot = NSBezierPath(ovalIn: NSRect(x: 45 + index * 19, y: 455, width: 9, height: 9))
-        fill(dot, color: dotColor)
-    }
-    let terminalTitle = "root@cracker:~" as NSString
-    terminalTitle.draw(
-        at: NSPoint(x: 122, y: 452),
-        withAttributes: [
-            .font: NSFont.monospacedSystemFont(ofSize: 15, weight: .medium),
-            .foregroundColor: color(0.46, 0.86, 0.54)
-        ]
-    )
-
-    let rainColumns: [(CGFloat, [String])] = [
-        (55, ["01", "A7", "10", "C3", "0F", "11"]),
-        (96, ["F0", "01", "7B", "10", "00"]),
-        (410, ["10", "E1", "0A", "FF", "01"]),
-        (451, ["C0", "10", "01", "B4", "0F"])
+    let rain = [
+        (CGFloat(40), "010101 101100 011010"),
+        (CGFloat(448), "101110 010101 110010"),
+        (CGFloat(75), "011001 100101 011101"),
+        (CGFloat(422), "110010 011100 101011")
     ]
-    for (columnX, items) in rainColumns {
-        for (index, text) in items.enumerated() {
-            let glyph = text as NSString
+    for (column, text) in rain {
+        for row in 0..<3 {
+            let glyph = String(text.dropFirst(row * 7).prefix(6)) as NSString
             glyph.draw(
-                at: NSPoint(x: columnX, y: 137 + CGFloat(index) * 34),
+                at: NSPoint(x: column, y: 126 + CGFloat(row) * 39),
                 withAttributes: [
-                    .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .bold),
-                    .foregroundColor: color(0.15, 0.9, 0.34, max(0.16, 0.64 - CGFloat(index) * 0.07))
+                    .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .bold),
+                    .foregroundColor: color(0.3, 1, 0.39, 0.24 + CGFloat(row) * 0.16)
                 ]
             )
         }
     }
 
+    let frame = NSBezierPath(ovalIn: NSRect(x: 21, y: 21, width: 470, height: 470))
+    stroke(frame, color: color(0.27, 1, 0.4, 0.58), width: 2)
+    let brokenRing = NSBezierPath()
+    brokenRing.appendArc(withCenter: NSPoint(x: 256, y: 256), radius: 226, startAngle: 14, endAngle: 92)
+    brokenRing.appendArc(withCenter: NSPoint(x: 256, y: 256), radius: 226, startAngle: 193, endAngle: 254)
+    neonStroke(brokenRing, color: acid, width: 2)
+
+    let outerRing = NSBezierPath(ovalIn: NSRect(x: 18, y: 18, width: 476, height: 476))
+    neonStroke(outerRing, color: green, width: 1.5)
+
     let hood = NSBezierPath()
-    hood.move(to: NSPoint(x: 106, y: 99))
-    hood.curve(to: NSPoint(x: 132, y: 315), controlPoint1: NSPoint(x: 73, y: 175), controlPoint2: NSPoint(x: 86, y: 271))
-    hood.curve(to: NSPoint(x: 256, y: 408), controlPoint1: NSPoint(x: 154, y: 414), controlPoint2: NSPoint(x: 204, y: 408))
-    hood.curve(to: NSPoint(x: 380, y: 315), controlPoint1: NSPoint(x: 308, y: 408), controlPoint2: NSPoint(x: 359, y: 414))
-    hood.curve(to: NSPoint(x: 406, y: 99), controlPoint1: NSPoint(x: 426, y: 271), controlPoint2: NSPoint(x: 439, y: 175))
+    hood.move(to: NSPoint(x: 52, y: 22))
+    hood.line(to: NSPoint(x: 85, y: 133))
+    hood.curve(to: NSPoint(x: 120, y: 375), controlPoint1: NSPoint(x: 76, y: 252), controlPoint2: NSPoint(x: 90, y: 333))
+    hood.curve(to: NSPoint(x: 256, y: 475), controlPoint1: NSPoint(x: 143, y: 463), controlPoint2: NSPoint(x: 192, y: 478))
+    hood.curve(to: NSPoint(x: 392, y: 375), controlPoint1: NSPoint(x: 320, y: 478), controlPoint2: NSPoint(x: 369, y: 463))
+    hood.curve(to: NSPoint(x: 427, y: 133), controlPoint1: NSPoint(x: 422, y: 333), controlPoint2: NSPoint(x: 436, y: 252))
+    hood.line(to: NSPoint(x: 460, y: 22))
+    hood.curve(to: NSPoint(x: 328, y: 79), controlPoint1: NSPoint(x: 415, y: 30), controlPoint2: NSPoint(x: 373, y: 50))
+    hood.curve(to: NSPoint(x: 184, y: 79), controlPoint1: NSPoint(x: 290, y: 62), controlPoint2: NSPoint(x: 222, y: 62))
     hood.close()
-    NSGradient(colors: [color(0.045, 0.17, 0.095), color(0.012, 0.045, 0.035), color(0.004, 0.017, 0.018)])!
+    NSGradient(colors: [color(0.11, 0.15, 0.13), color(0.025, 0.035, 0.04), color(0.005, 0.012, 0.02)])!
         .draw(in: hood, angle: 90)
-    stroke(hood, color: green, width: 3)
+    neonStroke(hood, color: green, width: 2)
 
-    let innerHood = NSBezierPath()
-    innerHood.move(to: NSPoint(x: 137, y: 148))
-    innerHood.curve(to: NSPoint(x: 256, y: 384), controlPoint1: NSPoint(x: 128, y: 267), controlPoint2: NSPoint(x: 174, y: 360))
-    innerHood.curve(to: NSPoint(x: 375, y: 148), controlPoint1: NSPoint(x: 338, y: 360), controlPoint2: NSPoint(x: 384, y: 267))
-    stroke(innerHood, color: color(0.1, 0.8, 0.27, 0.76), width: 2)
+    let shoulderSeam = NSBezierPath()
+    shoulderSeam.move(to: NSPoint(x: 108, y: 124))
+    shoulderSeam.curve(to: NSPoint(x: 256, y: 464), controlPoint1: NSPoint(x: 119, y: 332), controlPoint2: NSPoint(x: 164, y: 430))
+    shoulderSeam.curve(to: NSPoint(x: 404, y: 124), controlPoint1: NSPoint(x: 348, y: 430), controlPoint2: NSPoint(x: 393, y: 332))
+    stroke(shoulderSeam, color: color(0.28, 0.55, 0.37, 0.55), width: 1.5)
 
-    let face = polygon([
-        NSPoint(x: 164, y: 314), NSPoint(x: 170, y: 242), NSPoint(x: 202, y: 196),
-        NSPoint(x: 256, y: 172), NSPoint(x: 310, y: 196), NSPoint(x: 342, y: 242),
-        NSPoint(x: 348, y: 314), NSPoint(x: 312, y: 361), NSPoint(x: 256, y: 384),
-        NSPoint(x: 200, y: 361)
-    ])
-    NSGradient(colors: [color(0.018, 0.07, 0.05), color(0.003, 0.018, 0.018)])!
+    let face = NSBezierPath()
+    face.move(to: NSPoint(x: 150, y: 149))
+    face.curve(to: NSPoint(x: 140, y: 301), controlPoint1: NSPoint(x: 131, y: 206), controlPoint2: NSPoint(x: 129, y: 263))
+    face.curve(to: NSPoint(x: 256, y: 400), controlPoint1: NSPoint(x: 162, y: 371), controlPoint2: NSPoint(x: 197, y: 405))
+    face.curve(to: NSPoint(x: 372, y: 301), controlPoint1: NSPoint(x: 315, y: 405), controlPoint2: NSPoint(x: 350, y: 371))
+    face.curve(to: NSPoint(x: 362, y: 149), controlPoint1: NSPoint(x: 383, y: 263), controlPoint2: NSPoint(x: 381, y: 206))
+    face.curve(to: NSPoint(x: 256, y: 108), controlPoint1: NSPoint(x: 327, y: 112), controlPoint2: NSPoint(x: 285, y: 102))
+    face.curve(to: NSPoint(x: 150, y: 149), controlPoint1: NSPoint(x: 227, y: 102), controlPoint2: NSPoint(x: 185, y: 112))
+    face.close()
+    NSGradient(colors: [color(0.08, 0.095, 0.1), color(0.012, 0.018, 0.027)])!
         .draw(in: face, angle: 90)
-    stroke(face, color: color(0.2, 1, 0.4, 0.86), width: 2)
+    stroke(face, color: color(0.42, 0.57, 0.48, 0.75), width: 1.5)
 
-    let mask = NSBezierPath(roundedRect: NSRect(x: 157, y: 253, width: 198, height: 55), xRadius: 14, yRadius: 14)
-    NSGradient(colors: [color(0.02, 0.18, 0.08), color(0.005, 0.045, 0.035)])!.draw(in: mask, angle: 0)
-    stroke(mask, color: color(0.36, 1, 0.42, 0.9), width: 2)
+    let brow = NSBezierPath()
+    brow.move(to: NSPoint(x: 153, y: 271))
+    brow.curve(to: NSPoint(x: 359, y: 271), controlPoint1: NSPoint(x: 208, y: 307), controlPoint2: NSPoint(x: 304, y: 307))
+    stroke(brow, color: color(0.52, 0.65, 0.52, 0.46), width: 1.5)
 
-    for (x, y) in [(188.0, 278.0), (305.0, 278.0)] {
-        let eye = NSBezierPath(roundedRect: NSRect(x: x, y: y, width: 23, height: 5), xRadius: 2, yRadius: 2)
-        fill(eye, color: color(0.54, 1, 0.53))
+    let visor = NSBezierPath()
+    visor.move(to: NSPoint(x: 111, y: 268))
+    visor.line(to: NSPoint(x: 160, y: 230))
+    visor.line(to: NSPoint(x: 224, y: 246))
+    visor.line(to: NSPoint(x: 256, y: 260))
+    visor.line(to: NSPoint(x: 288, y: 246))
+    visor.line(to: NSPoint(x: 352, y: 230))
+    visor.line(to: NSPoint(x: 401, y: 268))
+    visor.line(to: NSPoint(x: 369, y: 322))
+    visor.line(to: NSPoint(x: 300, y: 297))
+    visor.line(to: NSPoint(x: 256, y: 310))
+    visor.line(to: NSPoint(x: 212, y: 297))
+    visor.line(to: NSPoint(x: 143, y: 322))
+    visor.close()
+    NSGradient(colors: [color(0.23, 0.025, 0.055), color(0.035, 0.025, 0.035), color(0.025, 0.18, 0.075)])!
+        .draw(in: visor, angle: 0)
+    neonStroke(visor, color: red, width: 2)
+
+    let leftLens = NSBezierPath()
+    leftLens.move(to: NSPoint(x: 145, y: 269))
+    leftLens.line(to: NSPoint(x: 199, y: 253))
+    leftLens.line(to: NSPoint(x: 236, y: 268))
+    leftLens.line(to: NSPoint(x: 202, y: 279))
+    leftLens.close()
+    fill(leftLens, color: color(1, 0.11, 0.2, 0.95))
+    neonStroke(leftLens, color: red, width: 2)
+
+    let rightLens = NSBezierPath()
+    rightLens.move(to: NSPoint(x: 367, y: 269))
+    rightLens.line(to: NSPoint(x: 313, y: 253))
+    rightLens.line(to: NSPoint(x: 276, y: 268))
+    rightLens.line(to: NSPoint(x: 310, y: 279))
+    rightLens.close()
+    fill(rightLens, color: color(0.34, 1, 0.26, 0.95))
+    neonStroke(rightLens, color: green, width: 2)
+    for x in stride(from: 160.0, through: 352.0, by: 32.0) {
+        let glint = NSBezierPath(ovalIn: NSRect(x: x, y: 266, width: 5, height: 5))
+        fill(glint, color: color(1, 1, 0.86))
     }
-    for x in stride(from: 224.0, through: 289.0, by: 11.0) {
-        let vent = NSBezierPath()
-        vent.move(to: NSPoint(x: x, y: 329))
-        vent.line(to: NSPoint(x: x, y: 343))
-        stroke(vent, color: dimGreen, width: 2)
+
+    let cheekGuard = NSBezierPath()
+    cheekGuard.move(to: NSPoint(x: 146, y: 317))
+    cheekGuard.line(to: NSPoint(x: 190, y: 337))
+    cheekGuard.line(to: NSPoint(x: 214, y: 330))
+    cheekGuard.move(to: NSPoint(x: 366, y: 317))
+    cheekGuard.line(to: NSPoint(x: 322, y: 337))
+    cheekGuard.line(to: NSPoint(x: 298, y: 330))
+    neonStroke(cheekGuard, color: acid, width: 1.5)
+
+    let lowerMask = NSBezierPath()
+    lowerMask.move(to: NSPoint(x: 182, y: 322))
+    lowerMask.curve(to: NSPoint(x: 256, y: 386), controlPoint1: NSPoint(x: 196, y: 369), controlPoint2: NSPoint(x: 228, y: 389))
+    lowerMask.curve(to: NSPoint(x: 330, y: 322), controlPoint1: NSPoint(x: 284, y: 389), controlPoint2: NSPoint(x: 316, y: 369))
+    stroke(lowerMask, color: color(0.55, 0.66, 0.57, 0.65), width: 1.5)
+    for (index, x) in stride(from: 216, through: 288, by: 12).enumerated() {
+        let vent = NSBezierPath(roundedRect: NSRect(x: x, y: 339, width: 5, height: 22), xRadius: 2, yRadius: 2)
+        fill(vent, color: index == 3 ? red : color(0.3, 0.72, 0.4, 0.82))
     }
 
-    let cheekCircuit = NSBezierPath()
-    cheekCircuit.move(to: NSPoint(x: 177, y: 313))
-    cheekCircuit.line(to: NSPoint(x: 201, y: 333))
-    cheekCircuit.line(to: NSPoint(x: 218, y: 333))
-    cheekCircuit.move(to: NSPoint(x: 335, y: 313))
-    cheekCircuit.line(to: NSPoint(x: 311, y: 333))
-    cheekCircuit.line(to: NSPoint(x: 294, y: 333))
-    stroke(cheekCircuit, color: color(0.1, 0.9, 0.32, 0.86), width: 2)
-    for x in [201.0, 311.0] {
-        fill(NSBezierPath(ovalIn: NSRect(x: x - 3, y: 330, width: 6, height: 6)), color: green)
+    let glitchSlices: [(CGFloat, CGFloat, CGFloat)] = [
+        (74, 355, 65), (139, 348, 37), (348, 184, 66),
+        (373, 146, 47), (67, 159, 31), (399, 324, 35)
+    ]
+    for (x, y, w) in glitchSlices {
+        let slice = NSBezierPath(rect: NSRect(x: x, y: y, width: w, height: 4))
+        fill(slice, color: color(0.32, 1, 0.42, 0.86))
+        let offset = NSBezierPath(rect: NSRect(x: x + 7, y: y - 5, width: w * 0.7, height: 2))
+        fill(offset, color: color(1, 0.13, 0.24, 0.84))
     }
 
-    let codePanel = NSBezierPath(roundedRect: NSRect(x: 135, y: 92, width: 242, height: 51), xRadius: 8, yRadius: 8)
-    fill(codePanel, color: color(0.004, 0.025, 0.018, 0.95))
-    stroke(codePanel, color: color(0.14, 0.78, 0.29, 0.82), width: 1)
-    let code = "0101  1010  0110" as NSString
-    code.draw(
-        at: NSPoint(x: 157, y: 111),
+    let badge = NSBezierPath(roundedRect: NSRect(x: 205, y: 48, width: 102, height: 35), xRadius: 7, yRadius: 7)
+    fill(badge, color: color(0.01, 0.025, 0.02))
+    neonStroke(badge, color: green, width: 1)
+    let initials = "LC // 451" as NSString
+    initials.draw(
+        at: NSPoint(x: 215, y: 58),
         withAttributes: [
-            .font: NSFont.monospacedSystemFont(ofSize: 15, weight: .bold),
-            .foregroundColor: color(0.32, 1, 0.45)
+            .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .bold),
+            .foregroundColor: color(0.65, 1, 0.7)
         ]
     )
 
-    for y in stride(from: 186.0, through: 397.0, by: 13.0) {
-        let scanline = NSBezierPath()
-        scanline.move(to: NSPoint(x: 151, y: y))
-        scanline.line(to: NSPoint(x: 361, y: y))
-        stroke(scanline, color: color(0.16, 0.92, 0.33, 0.08), width: 1)
-    }
-    for (x, y, w) in [(112.0, 350.0, 25.0), (378.0, 350.0, 25.0), (99.0, 181.0, 19.0), (394.0, 181.0, 19.0)] {
-        let glitch = NSBezierPath(rect: NSRect(x: x, y: y, width: w, height: 3))
-        fill(glitch, color: color(0.45, 1, 0.42, 0.82))
-    }
-
-    let badge = NSBezierPath(roundedRect: NSRect(x: 215, y: 49, width: 82, height: 31), xRadius: 9, yRadius: 9)
-    fill(badge, color: color(0.003, 0.025, 0.016))
-    stroke(badge, color: green, width: 1.5)
-    let initials = "LC" as NSString
-    let attributes: [NSAttributedString.Key: Any] = [
-        .font: NSFont.monospacedSystemFont(ofSize: 18, weight: .bold),
-        .foregroundColor: color(0.52, 1, 0.55)
-    ]
-    let textSize = initials.size(withAttributes: attributes)
-    initials.draw(
-        at: NSPoint(x: (CGFloat(size) - textSize.width) / 2, y: 55),
-        withAttributes: attributes
-    )
+    let cornerMarks = NSBezierPath()
+    cornerMarks.move(to: NSPoint(x: 77, y: 477))
+    cornerMarks.line(to: NSPoint(x: 77, y: 455))
+    cornerMarks.line(to: NSPoint(x: 99, y: 455))
+    cornerMarks.move(to: NSPoint(x: 435, y: 477))
+    cornerMarks.line(to: NSPoint(x: 435, y: 455))
+    cornerMarks.line(to: NSPoint(x: 413, y: 455))
+    neonStroke(cornerMarks, color: acid, width: 2)
 
     NSGraphicsContext.restoreGraphicsState()
     return bitmap
